@@ -4,6 +4,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import ru.job4j.model.User;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +33,10 @@ public class UserRepository {
         try (Session session = sf.openSession()) {
             var transaction = session.beginTransaction();
             try {
-                session.update(user);
+                session.createQuery("UPDATE User SET password = :newPassword WHERE id = :id")
+                        .setParameter("newPassword", user.getPassword())
+                        .setParameter("id", user.getId())
+                        .executeUpdate();
                 transaction.commit();
             } catch (Exception e) {
                 transaction.rollback();
@@ -45,11 +49,9 @@ public class UserRepository {
         try (Session session = sf.openSession()) {
             var transaction = session.beginTransaction();
             try {
-                User user = session.get(User.class, userId);
-                if (user != null) {
-                    session.delete(user);
-                }
-                session.delete(user);
+                session.createQuery("DELETE FROM User WHERE id = :id")
+                        .setParameter("id", userId)
+                        .executeUpdate();
                 transaction.commit();
             } catch (Exception e) {
                 transaction.rollback();
@@ -93,6 +95,4 @@ public class UserRepository {
             throw new RuntimeException("Failed to retrieve from database", e);
         }
     }
-
-
 }
