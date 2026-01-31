@@ -1,98 +1,52 @@
 package ru.job4j.repository;
 
+import lombok.AllArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import ru.job4j.model.User;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+@AllArgsConstructor
 public class UserRepository {
-    private final SessionFactory sf;
-
-    public UserRepository(SessionFactory sf) {
-        this.sf = sf;
-    }
+    private final CrudRepository crudRepository;
 
     public User create(User user) {
-        try (Session session = sf.openSession()) {
-            Transaction transaction = session.beginTransaction();
-            try {
-                session.save(user);
-                transaction.commit();
-                return user;
-            } catch (Exception e) {
-                transaction.rollback();
-                throw new RuntimeException("Failed to save user", e);
-            }
-        }
+        crudRepository.run(session -> session.persist(user));
+        return user;
     }
 
     public void update(User user) {
-        try (Session session = sf.openSession()) {
-            var transaction = session.beginTransaction();
-            try {
-                session.createQuery("UPDATE User SET password = :newPassword WHERE id = :id")
-                        .setParameter("newPassword", user.getPassword())
-                        .setParameter("id", user.getId())
-                        .executeUpdate();
-                transaction.commit();
-            } catch (Exception e) {
-                transaction.rollback();
-                throw new RuntimeException("Failed to update user", e);
-            }
-        }
+        crudRepository.run(session -> session.merge(user));
     }
 
     public void delete(Integer userId) {
-        try (Session session = sf.openSession()) {
-            var transaction = session.beginTransaction();
-            try {
-                session.createQuery("DELETE FROM User WHERE id = :id")
-                        .setParameter("id", userId)
-                        .executeUpdate();
-                transaction.commit();
-            } catch (Exception e) {
-                transaction.rollback();
-                throw new RuntimeException("Failed to delete user", e);
-            }
-        }
+        crudRepository.run("DELETE FROM User WHERE id = :fId", Map.of("fId", userId)
+        );
     }
 
     public List<User> findAllOrderById() {
-        try (Session session = sf.openSession()) {
-            return session.createQuery("FROM User ORDER BY id", User.class).list();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to retrieve from database", e);
-        }
+        return crudRepository.query("FROM User ORDER BY id ASC", User.class);
     }
 
     public Optional<User> findById(Integer userId) {
-        try (Session session = sf.openSession()) {
-            return Optional.ofNullable(session.get(User.class, userId));
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to retrieve from database", e);
-        }
+        return crudRepository.optional(
+                "FROM User WHERE id = :fid", User.class, Map.of("fId", userId));
     }
 
     public List<User> findByLikeLogin(String key) {
-        try (Session session = sf.openSession()) {
-            return session.createQuery("FROM User WHERE LOWER(login) LIKE LOWER(:key)", User.class)
-                    .setParameter("key", "%" + key + "%")
-                    .list();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to retrieve from database", e);
-        }
+        return crudRepository.query(
+                "FROM User WHERE LOWER(login) LIKE LOWER(:key)", User.class,
+                Map.of("fKey", "%" + key + "%")
+        );
     }
 
     public Optional<User> findByLogin(String login) {
-        try (Session session = sf.openSession()) {
-            return session.createQuery("FROM User WHERE login =:login", User.class)
-                    .setParameter("login", login)
-                    .uniqueResultOptional();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to retrieve from database", e);
-        }
+        return crudRepository.optional("FROM User WHERE login =:login", User.class,
+                Map.of("login", login));
     }
+
 }
