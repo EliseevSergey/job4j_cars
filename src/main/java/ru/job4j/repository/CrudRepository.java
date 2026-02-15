@@ -72,6 +72,7 @@ public class CrudRepository {
         try {
             transaction = session.beginTransaction();
             T rsl = command.apply(session);
+            transaction.commit();
             return rsl;
         } catch (Exception e) {
             if (transaction != null) {
