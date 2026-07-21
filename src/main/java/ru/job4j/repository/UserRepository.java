@@ -30,12 +30,12 @@ public class UserRepository {
 
     public Optional<User> findById(Integer userId) {
         return crudRepository.optional(
-                "FROM User WHERE id = :fid", User.class, Map.of("fId", userId));
+                "FROM User WHERE id = :fId", User.class, Map.of("fId", userId));
     }
 
     public List<User> findByLikeLogin(String key) {
         return crudRepository.query(
-                "FROM User WHERE LOWER(login) LIKE LOWER(:key)", User.class,
+                "FROM User WHERE LOWER(login) LIKE LOWER(:fKey)", User.class,
                 Map.of("fKey", "%" + key + "%")
         );
     }

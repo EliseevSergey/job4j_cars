@@ -1,0 +1,5 @@
+CREATE TABLE car(
+id SERIAL PRIMARY KEY,
+name VARCHAR(255) NOT NULL,
+engine_id INT NOT NULL REFERENCES engine(id)
+);
