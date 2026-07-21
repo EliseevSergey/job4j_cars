@@ -15,27 +15,27 @@ public class UserRepository {
         return user;
     }
 
-    public void update(User user) {
-        crudRepository.run(session -> session.merge(user));
-    }
-
-    public void delete(Integer userId) {
-        crudRepository.run("DELETE FROM User WHERE id = :fId", Map.of("fId", userId)
-        );
-    }
-
-    public List<User> findAllOrderById() {
-        return crudRepository.query("FROM User ORDER BY id ASC", User.class);
-    }
-
     public Optional<User> findById(Integer userId) {
         return crudRepository.optional(
-                "FROM User WHERE id = :fid", User.class, Map.of("fId", userId));
+                "FROM User WHERE id = :fId", User.class, Map.of("fId", userId));
+    }
+
+    public boolean updatePassword(Integer userId, String newPassword) {
+        return crudRepository.execute("UPDATE User SET password = :newPassword WHERE id = :fId",
+                Map.of("newPassword", newPassword, "fId", userId)) > 0;
+    }
+
+    public boolean delete(Integer userId) {
+        return crudRepository.execute("DELETE FROM User WHERE id = :fId", Map.of("fId", userId)) > 0;
+    }
+
+    public List<User> findAll() {
+        return crudRepository.query("FROM User ORDER BY id ASC", User.class);
     }
 
     public List<User> findByLikeLogin(String key) {
         return crudRepository.query(
-                "FROM User WHERE LOWER(login) LIKE LOWER(:key)", User.class,
+                "FROM User WHERE LOWER(login) LIKE LOWER(:fKey)", User.class,
                 Map.of("fKey", "%" + key + "%")
         );
     }
@@ -45,3 +45,4 @@ public class UserRepository {
                 Map.of("login", login));
     }
 }
+

@@ -18,10 +18,7 @@ public class UserUsage {
             user.setLogin("admin");
             user.setPassword("admin");
             userRepository.create(user);
-            userRepository.findAllOrderById()
-                    .forEach(System.out::println);
-
-            userRepository.findAllOrderById()
+            userRepository.findAll()
                     .forEach(System.out::println);
 
             userRepository.findByLikeLogin("e")
@@ -34,12 +31,12 @@ public class UserUsage {
                     .ifPresent(System.out::println);
 
             user.setPassword("password");
-            userRepository.update(user);
+            userRepository.updatePassword(user.getId(), user.getPassword());
             userRepository.findById(user.getId())
                     .ifPresent(System.out::println);
 
             userRepository.delete(user.getId());
-            userRepository.findAllOrderById()
+            userRepository.findAll()
                     .forEach(System.out::println);
         } finally {
             StandardServiceRegistryBuilder.destroy(registry);
