@@ -38,4 +38,5 @@ public class Post {
     @OneToOne
     @JoinColumn(name = "car_id", nullable = false, unique = true)
     private Car car;
+    private String photo;
 }
