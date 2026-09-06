@@ -35,6 +35,18 @@ public class CrudRepository {
         run(command);
     }
 
+    public int execute(String query, Map<String, Object> args) {
+        Function<Session, Integer> command = session -> {
+            Query sq = session
+                    .createQuery(query);
+            for (Map.Entry<String, Object> arg : args.entrySet()) {
+                sq.setParameter(arg.getKey(), arg.getValue());
+            }
+            return sq.executeUpdate();
+        };
+        return tx(command);
+    }
+
     public <T> Optional<T> optional(String query, Class<T> cl, Map<String, Object> args) {
         Function<Session, Optional<T>> command = session -> {
             Query sq = session

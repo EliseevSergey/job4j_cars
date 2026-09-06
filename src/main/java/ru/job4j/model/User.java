@@ -16,7 +16,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Integer id;
+    @Column (nullable = false, unique = true, length = 20)
     private String login;
+    @Column (nullable = false)
     private String password;
 
     @OneToMany(cascade = CascadeType.ALL)
