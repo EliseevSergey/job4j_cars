@@ -1,7 +1,10 @@
 package ru.job4j.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +14,8 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "auto_post")
+@AllArgsConstructor
+@NoArgsConstructor
 
 public class Post {
     @Id
@@ -39,4 +44,5 @@ public class Post {
     @JoinColumn(name = "car_id", nullable = false, unique = true)
     private Car car;
     private String photo;
+    private boolean sold;
 }

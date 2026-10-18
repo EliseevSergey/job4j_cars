@@ -1,0 +1,5 @@
+CREATE TABLE model (
+id SERIAL PRIMARY KEY,
+name VARCHAR(100) NOT NULL,
+brand_id INTEGER NOT NULL REFERENCES brand(id),
+UNIQUE (name, brand_id));

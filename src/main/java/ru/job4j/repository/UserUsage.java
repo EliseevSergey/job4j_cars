@@ -6,6 +6,13 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import ru.job4j.model.User;
 
+/**
+ * @deprecated class does not apply CRUD-repository {@link CrudRepository}
+ * it instantiates its own SessionFactory outside of Spring.
+ * Retained for history.
+ */
+
+@Deprecated
 public class UserUsage {
     public static void main(String[] args) {
         StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
