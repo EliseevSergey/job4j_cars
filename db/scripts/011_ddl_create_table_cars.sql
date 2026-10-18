@@ -1,0 +1,8 @@
+CREATE TABLE car(
+id SERIAL PRIMARY KEY,
+vin VARCHAR(17) NOT NULL UNIQUE,
+brand_id INT NOT NULL REFERENCES brand(id),
+model_id INT NOT NULL REFERENCES model(id),
+engine_id INT NOT NULL REFERENCES engine(id),
+color_id INT NOT NULL REFERENCES color(id)
+);

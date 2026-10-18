@@ -16,8 +16,8 @@
   </parent>
 
   <properties>
-    <maven.compiler.source>18</maven.compiler.source>
-    <maven.compiler.target>18</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -30,15 +30,19 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    <dependency>
+    <!--<dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
       <scope>runtime</scope>
       <optional>true</optional>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-orm</artifactId>
     </dependency>
     <dependency>
        <groupId>com.h2database</groupId>
@@ -55,11 +59,6 @@
        <groupId>org.apache.commons</groupId>
        <artifactId>commons-dbcp2</artifactId>
        <version>2.9.0</version>
-     </dependency>
-     <dependency>
-       <groupId>org.sql2o</groupId>
-       <artifactId>sql2o</artifactId>
-       <version>1.6.0</version>
      </dependency>
      <dependency>
        <groupId>net.jcip</groupId>

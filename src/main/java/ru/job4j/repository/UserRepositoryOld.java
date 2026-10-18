@@ -8,6 +8,12 @@ import ru.job4j.model.User;
 import java.util.List;
 import java.util.Optional;
 
+/**
+* @deprecated class does not follow the CRUD approach through {@link CrudRepository
+* Retained for history.
+*/
+
+@Deprecated
 public class UserRepositoryOld {
     private final SessionFactory sf;
 

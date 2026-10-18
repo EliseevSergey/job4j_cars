@@ -1,13 +1,15 @@
 package ru.job4j.repository;
 
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Repository;
 import ru.job4j.model.Car;
-import ru.job4j.model.Engine;
 import ru.job4j.model.Owner;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+@Repository
 @AllArgsConstructor
 public class CarRepository {
     private final CrudRepository crudRepository;
@@ -17,28 +19,76 @@ public class CarRepository {
         return car;
     }
 
-    public boolean updateName(Integer carId, String newName) {
-        return crudRepository.execute("UPDATE Car SET name = :newName WHERE id = :fId",
-                Map.of("newName", newName, "fId", carId)) > 0;
+    public Optional<Car> findById(Integer carId) {
+        return crudRepository.optional("FROM Car c "
+                + "JOIN FETCH c.brand "
+                + "JOIN FETCH c.model "
+                + "JOIN FETCH c.engine e "
+                + "JOIN FETCH c.color "
+                + "JOIN FETCH e.fuel WHERE c.id = :fId", Car.class, Map.of("fId", carId));
     }
 
-    public boolean updateEngine(Integer carId, Engine newEngine) {
-        return crudRepository.execute("UPDATE Car SET engine = :newEngine WHERE id = :fId",
-                Map.of("newEngine", newEngine, "fId", carId)) > 0;
+    /*public boolean update(Car car) {
+        return crudRepository.execute("UPDATE Car c SET "
+                + "c.vin = : fVin, "
+                + "c.brand = :fBrand, "
+                + "c.model = :fModel, "
+                + "c.engine = :fEngine, "
+                + "c.color = :fColor "
+                + "WHERE c.id = :fId", Map.of(
+                "fId", car.getId(),
+                "fVin", car.getVin(),
+                "fBrand", car.getBrand(),
+                "fModel", car.getModel(),
+                "fEngine", car.getEngine(),
+                "fColor", car.getColor())
+        ) > 0;
+    }*/
+
+    public Car update(Car car) {
+        crudRepository.tx(session -> session.merge(car));
+        return car;
     }
 
     public boolean delete(Integer carId) {
-        return crudRepository.execute("DELETE FROM Car WHERE id = :fId", Map.of("fId", carId)) > 0;
+        return crudRepository.execute("DELETE FROM Car c WHERE c.id = :fId", Map.of("fId", carId)) > 0;
     }
 
-    public List<Car> findByLikeName(String key) {
-        return crudRepository.query("FROM Car WHERE LOWER(name) LIKE LOWER(:fKey)", Car.class,
+
+    public List<Car> findByLikeModelName(String key) {
+        return crudRepository.query("FROM Car c "
+                        + "JOIN FETCH c.brand "
+                        + "JOIN FETCH c.model m "
+                        + "JOIN FETCH c.engine e "
+                        + "JOIN FETCH e.fuel "
+                        + "JOIN FETCH c.color "
+                        + "WHERE LOWER(m.name) LIKE LOWER(:fKey) ORDER BY m.name",
+                Car.class,
+                Map.of("fKey", "%" + key + "%")
+        );
+    }
+
+    public List<Car> findByLikeBrandName(String key) {
+        return crudRepository.query("FROM Car c "
+                        + "JOIN FETCH c.brand b "
+                        + "JOIN FETCH c.model "
+                        + "JOIN FETCH c.engine e "
+                        + "JOIN FETCH e.fuel "
+                        + "JOIN FETCH c.color "
+                        + "WHERE LOWER(b.name) LIKE LOWER(:fKey) "
+                        + "ORDER BY b.name", Car.class,
                 Map.of("fKey", "%" + key + "%")
         );
     }
 
     public List<Car> findAll() {
-        return crudRepository.query("FROM Car ORDER BY id ASC", Car.class);
+        return crudRepository.query("FROM Car c "
+                + "JOIN FETCH c.brand "
+                + "JOIN FETCH c.model "
+                + "JOIN FETCH c.engine e "
+                + "JOIN FETCH e.fuel "
+                + "JOIN FETCH c.color "
+                + "ORDER BY c.brand.name, c.model.name ASC", Car.class);
     }
 
     public boolean addOwner(Integer carId, Integer ownerId) {
