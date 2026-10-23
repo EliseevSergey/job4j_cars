@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.job4j.model.Brand;
 import ru.job4j.model.Car;
 import ru.job4j.repository.CarRepository;
 
@@ -54,10 +55,16 @@ public class SimpleCarServiceTest {
 
     @Test
     public void findByLikeModelName() {
+        Car car = new Car(1, "vin45678901234567", null, null, null, null, Set.of());
+        when(carRepository.findByLikeModelName("Camry")).thenReturn(List.of(car));
+        assertThat(simpleCarService.findByLikeModelName("Camry")).isEqualTo(List.of(car));
     }
 
     @Test
     public void findByLikeBrandName() {
+        Car car = new Car(1, "vin45678901234567", null, null, null, null, Set.of());
+        when(carRepository.findByLikeBrandName("bmw")).thenReturn(List.of(car));
+        assertThat(simpleCarService.findByLikeBrandName("bmw")).isEqualTo(List.of(car));
     }
 
     @Test
