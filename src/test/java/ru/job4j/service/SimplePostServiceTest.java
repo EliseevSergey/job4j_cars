@@ -7,8 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.job4j.model.Post;
 import ru.job4j.repository.PostRepository;
-
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,30 +19,29 @@ public class SimplePostServiceTest {
     private PostRepository postRepository;
     @InjectMocks
     private SimplePostService simplePostService;
+    private Post post = new Post();
 
     @Test
-    public void whenCreateThanReturnSavedPost() {
-        Post post = new Post();
+    public void whenCreateThenReturnSavedPost() {
         when(postRepository.create(post)).thenReturn(post);
         assertThat(simplePostService.create(post)).isEqualTo(post);
     }
 
     @Test
-    public void whenFindByIdThanReturnPost() {
-        Post post = new Post();
+    public void whenFindByIdThenReturnPost() {
         post.setId(1);
         when(postRepository.findById(1)).thenReturn(Optional.of(post));
-        assertThat(simplePostService.create(post)).isEqualTo(post);
+        assertThat(simplePostService.findById(1)).isPresent().contains(post);
     }
 
     @Test
-    public void whenFindByIdThanReturnEmptyIfNotFound(){
+    public void whenFindByIdThenReturnEmptyIfNotFound() {
         when(postRepository.findById(666)).thenReturn(Optional.empty());
-        assertThat(simplePostService.findById(666).isEmpty());
+        assertThat(simplePostService.findById(666)).isEmpty();
     }
 
     @Test
-    public void whenFindAllThanReturnAllPosts() {
+    public void whenFindAllThenReturnAllPosts() {
         Post post1 = new Post();
         Post post2 = new Post();
         when(postRepository.findAll()).thenReturn(List.of(post1, post2));
@@ -52,22 +49,31 @@ public class SimplePostServiceTest {
     }
 
     @Test
-    public void whenFindLastDayThanReturnPosts() {
-        Post post1 = new Post();
-        when(postRepository.findLastDay()).thenReturn(List.of(post1));
-        assertThat(simplePostService.findLastDay()).hasSize(1).contains(post1);
+    public void whenFindLastDayThenReturnPosts() {
+        when(postRepository.findLastDay()).thenReturn(List.of(post));
+        assertThat(simplePostService.findLastDay()).hasSize(1).contains(post);
     }
 
     @Test
-    public void findWithPhoto() {
+    public void whenFindWithPhotoThenReturnPosts() {
+        when(postRepository.findWithPhoto()).thenReturn(List.of(post));
+        assertThat(simplePostService.findWithPhoto()).hasSize(1).contains(post);
+    }
+
+    @Test
+    public void whenFindWithPhotoThenReturnEmpty() {
+        when(postRepository.findWithPhoto()).thenReturn(List.of());
+        assertThat(simplePostService.findWithPhoto()).isEmpty();
     }
 
     @Test
     public void findByBrand() {
+        when(postRepository.findByBrand("Brand")).thenReturn(List.of(post));
+        assertThat(simplePostService.findByBrand("Brand")).hasSize(1).contains(post);
     }
 
     @Test
-    public void whenSetSoldThanReturnTrueIfUpdated() {
+    public void whenSetSoldThenReturnTrueIfUpdated() {
         when(postRepository.setSold(1, true)).thenReturn(true);
         assertThat(simplePostService.setSold(1, true)).isTrue();
     }
@@ -80,7 +86,6 @@ public class SimplePostServiceTest {
 
     @Test
     public void whenUpdateThenReturnUpdatedPost() {
-        Post post = new Post();
         when(postRepository.update(post)).thenReturn(post);
         assertThat(simplePostService.update(post)).isEqualTo(post);
     }
