@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+
 
 @SpringBootTest
 public class PostRepositoryTest {
@@ -21,6 +21,8 @@ public class PostRepositoryTest {
     private PostRepository postRepository;
     @Autowired
     private SessionFactory sessionFactory;
+    private User user;
+    private Car car;
 
     @BeforeEach
     public void setUp() {
@@ -44,8 +46,9 @@ public class PostRepositoryTest {
             Fuel fuel = new Fuel(null, "Petrol");
             Engine engine = new Engine(null, 2.5, fuel, 180);
             Color color = new Color(null, "Black");
-            User user = new User(null, "test@user", "pass", "Test User", "UTC", List.of());
+            user = new User(null, "login@user", "pass", "Test User", "UTC", List.of());
 
+            car = new Car(null, "VIN0", brand, model, engine, color, null);
             Car car1 = new Car(null, "VIN1", brand, model, engine, color, null);
             Car car2 = new Car(null, "VIN2", brand, model, engine, color, null);
 
@@ -55,6 +58,8 @@ public class PostRepositoryTest {
             session.persist(engine);
             session.persist(color);
             session.persist(user);
+
+            session.persist(car);
             session.persist(car1);
             session.persist(car2);
 
@@ -84,7 +89,19 @@ public class PostRepositoryTest {
 
     @Test
     public void whenCreatePostThenReceiveSavedPost() {
+        Post post = new Post();
+        post.setUser(user);
+        post.setCar(car);
+        post.setDescription("description");
+        post.setPhoto("/photo.jpg");
 
+        Post savedPost = postRepository.create(post);
+
+        assertThat(savedPost.getId()).isGreaterThan(0);
+        assertThat(savedPost.getDescription()).isEqualTo("description");
+        assertThat(savedPost.getPhoto()).isEqualTo("/photo.jpg");
+        assertThat(savedPost.getCar().getVin()).isEqualTo("VIN0");
+        assertThat(savedPost.getUser().getLogin()).isEqualTo("login@user");
     }
 
     @Test
