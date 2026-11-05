@@ -30,7 +30,7 @@ public class PostRepositoryTest {
     @BeforeEach
     public void setUp() {
         try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
+            Transaction tx = session.beginTransaction();
             session.createQuery("DELETE FROM Post").executeUpdate();
             session.createQuery("DELETE FROM Car").executeUpdate();
             session.createQuery("DELETE FROM User").executeUpdate();
@@ -39,7 +39,7 @@ public class PostRepositoryTest {
             session.createQuery("DELETE FROM Model").executeUpdate();
             session.createQuery("DELETE FROM Brand").executeUpdate();
             session.createQuery("DELETE FROM Color").executeUpdate();
-            session.getTransaction().commit();
+            tx.commit();
         }
 
         try (Session session = sessionFactory.openSession()) {
