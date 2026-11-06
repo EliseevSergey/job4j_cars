@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.job4j.model.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,18 +64,25 @@ public class CarRepositoryTest {
     @Test
     public void whenCreateThanReceiveSavedCar() {
         Car savedCar = carRepository.create(car);
+
         assertThat(savedCar).isNotNull();
         assertThat(savedCar.getId()).isNotNull();
 
         try (Session session = sessionFactory.openSession()) {
             Car dBCar = session.get(Car.class, savedCar.getId());
+
             assertThat(dBCar.getVin()).isEqualTo("VIN0");
             assertThat(dBCar.getBrand().getName()).isEqualTo("Toyota");
         }
     }
 
     @Test
-    void findById() {
+    public void whenFindByIdThenReceivedCarWithThisId() {
+        Car savedCar = carRepository.create(car);
+        Integer id = savedCar.getId();
+        Optional<Car> rsl = carRepository.findById(id);
+        assertThat(rsl).isPresent().isNotNull();
+        assertThat(rsl.get().getId()).isEqualTo(id);
     }
 
     @Test
