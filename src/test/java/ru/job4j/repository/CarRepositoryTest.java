@@ -80,13 +80,54 @@ public class CarRepositoryTest {
     public void whenFindByIdThenReceivedCarWithThisId() {
         Car savedCar = carRepository.create(car);
         Integer id = savedCar.getId();
+
         Optional<Car> rsl = carRepository.findById(id);
-        assertThat(rsl).isPresent().isNotNull();
+
+        assertThat(rsl).isPresent();
         assertThat(rsl.get().getId()).isEqualTo(id);
+        assertThat(rsl.get().getVin()).isEqualTo("VIN0");
+        assertThat(rsl.get().getBrand().getName()).isEqualTo("Toyota");
     }
 
     @Test
-    void update() {
+    public void whenUpdateThenReceiveUpdatedCar() {
+        Car savedCar = carRepository.create(car);
+        Integer id = savedCar.getId();
+        Car carToUpdate = carRepository.findById(id).get();
+
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            Brand brand2 = new Brand(null, "Lada", List.of());
+            Model model2 = new Model(null, "Niva", brand2);
+            Fuel fuel2 = new Fuel(null, "Diesel");
+            Engine engine2 = new Engine(null, 2.0, fuel2, 100);
+            Color color2 = new Color(null, "Green");
+
+            session.persist(brand2);
+            session.persist(model2);
+            session.persist(fuel2);
+            session.persist(engine2);
+            session.persist(color2);
+
+            carToUpdate.setVin("newVIN");
+
+            carToUpdate.setBrand(brand2);
+            carToUpdate.setModel(model2);
+            carToUpdate.setEngine(engine2);
+            carToUpdate.setColor(color2);
+
+            tx.commit();
+        }
+
+        Car afterUpdate = carRepository.update(carToUpdate);
+
+        assertThat(afterUpdate.getVin()).isEqualTo("newVIN");
+        assertThat(afterUpdate.getId()).isEqualTo(id);
+
+        assertThat(afterUpdate.getBrand().getName()).isEqualTo("Lada");
+        assertThat(afterUpdate.getModel().getName()).isEqualTo("Niva");
+        assertThat(afterUpdate.getEngine().getFuel().getName()).isEqualTo("Diesel");
+        assertThat(afterUpdate.getColor().getName()).isEqualTo("Green");
     }
 
     @Test
