@@ -40,8 +40,6 @@ public class CarRepositoryTest {
             tx.commit();
         }
 
-
-
         try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
             Brand brand1 = new Brand(null, "Toyota", List.of());
@@ -95,43 +93,42 @@ public class CarRepositoryTest {
         Integer id = savedCar.getId();
         Car carToUpdate = carRepository.findById(id).get();
 
-        Brand brand2;
-        Model model2;
-        Fuel fuel2;
-        Engine engine2;
-        Color color2;
+        Brand brand;
+        Model model;
+        Fuel fuel;
+        Engine engine;
+        Color color;
 
         try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
-            brand2 = new Brand(null, "Lada", List.of());
-            model2 = new Model(null, "Niva", brand2);
-            fuel2 = new Fuel(null, "Diesel");
-            engine2 = new Engine(null, 2.0, fuel2, 100);
-            color2 = new Color(null, "Green");
+            brand = new Brand(null, "Lada", List.of());
+            model = new Model(null, "Niva", brand);
+            fuel = new Fuel(null, "Diesel");
+            engine = new Engine(null, 2.0, fuel, 100);
+            color = new Color(null, "Green");
 
-            session.persist(brand2);
-            session.persist(model2);
-            session.persist(fuel2);
-            session.persist(engine2);
-            session.persist(color2);
+            session.persist(brand);
+            session.persist(model);
+            session.persist(fuel);
+            session.persist(engine);
+            session.persist(color);
 
             tx.commit();
         }
 
         carToUpdate.setVin("newVIN");
-        carToUpdate.setBrand(brand2);
-        carToUpdate.setModel(model2);
-        carToUpdate.setEngine(engine2);
-        carToUpdate.setColor(color2);
-
+        carToUpdate.setBrand(brand);
+        carToUpdate.setModel(model);
+        carToUpdate.setEngine(engine);
+        carToUpdate.setColor(color);
 
         carRepository.update(carToUpdate);
 
         try (Session session = sessionFactory.openSession()) {
-            //Transaction tx = session.beginTransaction();
 
             Car dBCar = session.get(Car.class, id);
 
+            assertThat(dBCar).isNotNull();
             assertThat(dBCar.getVin()).isEqualTo("newVIN");
             assertThat(dBCar.getId()).isEqualTo(id);
 
@@ -139,72 +136,54 @@ public class CarRepositoryTest {
             assertThat(dBCar.getModel().getName()).isEqualTo("Niva");
             assertThat(dBCar.getEngine().getFuel().getName()).isEqualTo("Diesel");
             assertThat(dBCar.getColor().getName()).isEqualTo("Green");
-            //tx.commit();
         }
     }
 
     @Test
-    public void whenUpdateThenCarUpdatedInDatabase() {
-        // 1. Создаём машину
+    void whenDeleteThenReturnTrueAndCarIsGone() {
         Car savedCar = carRepository.create(car);
         Integer id = savedCar.getId();
 
-        // 2. Отвязываем объект от сессии (гарантируем detached)
-        try (Session session = sessionFactory.openSession()) {
-            Car detached = session.get(Car.class, id);
-            session.evict(detached); // ← важно!
-            // detached теперь "отвязан"
-        }
-
-        // 3. Создаём новые справочники в отдельной транзакции
-        Brand newBrand;
-        Model newModel;
-        Engine newEngine;
-        Color newColor;
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            newBrand = new Brand(null, "Lada", List.of());
-            newModel = new Model(null, "Niva", newBrand);
-            Fuel newFuel = new Fuel(null, "Diesel");
-            newEngine = new Engine(null, 2.0, newFuel, 100);
-            newColor = new Color(null, "Green");
-            session.persist(newBrand);
-            session.persist(newModel);
-            session.persist(newFuel);
-            session.persist(newEngine);
-            session.persist(newColor);
-            tx.commit();
-        }
-
-        // 4. Изменяем detached объект вручную (не в контексте Hibernate!)
-        Car toUpdate = new Car();
-        toUpdate.setId(id);
-        toUpdate.setVin("newVIN");
-        toUpdate.setBrand(newBrand);
-        toUpdate.setModel(newModel);
-        toUpdate.setEngine(newEngine);
-        toUpdate.setColor(newColor);
-
-        // 5. Вызываем тестируемый метод
-        carRepository.update(toUpdate);
-
-        // 6. Проверяем в БД
         try (Session session = sessionFactory.openSession()) {
             Car dbCar = session.get(Car.class, id);
-            assertThat(dbCar.getVin()).isEqualTo("newVIN");
-            assertThat(dbCar.getBrand().getName()).isEqualTo("Lada");
-            assertThat(dbCar.getModel().getName()).isEqualTo("Niva");
-            assertThat(dbCar.getEngine().getFuel().getName()).isEqualTo("Diesel");
-            assertThat(dbCar.getColor().getName()).isEqualTo("Green");
+            assertThat(dbCar).isNotNull();
+        }
+
+        assertThat(carRepository.delete(id)).isTrue();
+
+        try (Session session = sessionFactory.openSession()) {
+            assertThat(session.get(Car.class, id)).isNull();
         }
     }
 
     @Test
-    void delete() {
+    public void whenDeleteNonExistentCarThenReturnFalse() {
+        assertThat(carRepository.delete(666)).isFalse();
     }
 
     @Test
-    void findByLikeModelName() {
+    public void whenFindByLikeModelNameThenReceiveCarList() {
+        String key = "aMr";
+        Car dbCar = carRepository.create(car);
+
+        Model model = new Model(null, "RAV4", car.getBrand());
+
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            session.persist(model);
+            tx.commit();
+        }
+        Car other = new Car(null, "VIN2", car.getBrand(), model,
+                car.getEngine(), car.getColor(), null);
+
+
+        carRepository.create(other);
+        List<Car> rsl = carRepository.findByLikeModelName(key);
+        assertThat(rsl).hasSize(1);
+        assertThat(rsl).containsExactly(dbCar);
+        assertThat(rsl.get(0).getModel().getName()).isEqualTo("Camry");
+        assertThat(rsl.get(0).getVin()).isEqualTo("VIN0");
+
     }
 
     @Test
