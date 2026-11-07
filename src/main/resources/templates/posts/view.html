@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Просмотр объявления</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<header th:insert="~{blocks/header :: header}"></header>
+<div class="container mt-5">
+
+  <!-- ⬇️ FLASH-СООБЩЕНИЯ — ВСТАВИТЬ ЗДЕСЬ ⬇️ -->
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+    <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <!-- ⬆️ FLASH-СООБЩЕНИЯ — КОНЕЦ ⬆️ -->
+
+  <div class="row">
+    <div class="col-12">
+
+      <h1>
+        <span th:text="${post.car.brand.name}">Renault</span>
+        <span th:text="${post.car.model.name}">Logan</span>
+      </h1>
+
+      <!-- Фото -->
+      <div class="mb-3" th:if="${post.photo != null and !post.photo.isEmpty()}">
+        <img th:src="@{${post.photo}}" alt="Фото" class="img-fluid" style="max-width: 600px;">
+      </div>
+
+      <!-- VIN -->
+      <div class="mb-3">
+        <label class="form-label"><b>VIN</b></label>
+        <div class="form-control-plaintext" th:text="${post.car.vin}"></div>
+      </div>
+
+      <!-- Цвет -->
+      <div class="mb-3">
+        <label class="form-label"><b>Цвет</b></label>
+        <div class="form-control-plaintext" th:text="${post.car.color.name}"></div>
+      </div>
+
+      <!-- Двигатель -->
+      <div class="mb-3">
+        <label class="form-label"><b>Двигатель</b></label>
+        <div class="form-control-plaintext"
+             th:text="${post.car.engine.fuel.name + ', ' + post.car.engine.volume + ' л, ' + post.car.engine.horsePower + ' л.с.'}">
+        </div>
+      </div>
+
+      <!-- Описание -->
+      <div class="mb-3">
+        <label class="form-label"><b>Описание</b></label>
+        <div class="form-control-plaintext" th:text="${post.description}"></div>
+      </div>
+
+      <!-- Автор -->
+      <div class="mb-3">
+        <label class="form-label"><b>Автор</b></label>
+        <div class="form-control-plaintext" th:text="${post.user.login}"></div>
+      </div>
+
+      <!-- Дата -->
+      <div class="mb-3">
+        <label class="form-label"><b>Дата создания</b></label>
+        <div class="form-control-plaintext"
+             th:text="${#temporals.format(post.created, 'dd.MM.yyyy HH:mm')}"></div>
+      </div>
+
+      <!-- Статус -->
+      <div class="mb-3">
+        <label class="form-label"><b>Статус</b></label>
+        <div class="form-control-plaintext">
+          <span th:if="${post.sold}" class="badge bg-danger">Продано</span>
+          <span th:unless="${post.sold}" class="badge bg-success">В продаже</span>
+        </div>
+      </div>
+
+      <!-- Кнопки -->
+      <div class="mt-4">
+        <a th:href="@{/posts}" class="btn btn-secondary">Назад к списку</a>
+
+        <!-- Кнопки только для автора -->
+        <th:block th:if="${isAuthor}">
+          <a th:href="@{/posts/{id}/edit(id=${post.id})}"
+             class="btn btn-warning">Редактировать</a>
+
+          <!-- Продано -->
+          <form th:if="${!post.sold}"
+                th:action="@{/posts/{id}/sold(id=${post.id})}"
+                method="post" style="display: inline;">
+            <button type="submit" class="btn btn-success">Продано</button>
+          </form>
+
+          <!-- Вернуть в продажу -->
+          <form th:if="${post.sold}"
+                th:action="@{/posts/{id}/unsold(id=${post.id})}"
+                method="post" style="display: inline;">
+            <button type="submit" class="btn btn-info">Вернуть в продажу</button>
+          </form>
+        </th:block>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
