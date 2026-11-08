@@ -21,8 +21,12 @@ public class CarRepositoryTest {
     private CarRepository carRepository;
     @Autowired
     private SessionFactory sessionFactory;
-    private Car car;
-    private User user;
+    private Car car1;
+    private Car car2;
+    private Car car3;
+
+    private User user1;
+    private User user2;
 
     @BeforeEach
     public void setUp() {
@@ -43,25 +47,56 @@ public class CarRepositoryTest {
         try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
             Brand brand1 = new Brand(null, "Toyota", List.of());
+            Brand brand2 = new Brand(null, "BMW", List.of());
+
             Model model1 = new Model(null, "Camry", brand1);
-            Fuel fuel = new Fuel(null, "Petrol");
-            Engine engine = new Engine(null, 2.5, fuel, 180);
-            Color color = new Color(null, "Black");
-            user = new User(null, "login@user", "pass", "Test User", "UTC", List.of());
-            car = new Car(null, "VIN0", brand1, model1, engine, color, null);
-            session.persist(user);
+            Model model2 = new Model(null, "X5", brand2);
+            Model model3 = new Model(null, "LandCruiser", brand1);
+
+            Fuel fuel1 = new Fuel(null, "Petrol");
+            Fuel fuel2 = new Fuel(null, "Diesel");
+
+            Engine engine1 = new Engine(null, 2.5, fuel1, 180);
+            Engine engine2 = new Engine(null, 1.6, fuel2, 180);
+
+            Color color1 = new Color(null, "Black");
+            Color color2 = new Color(null, "Green");
+            Color color3 = new Color(null, "Yellow");
+
+
+            user1 = new User(null, "login1@user", "pass", "Test User1", "UTC", List.of());
+            user2 = new User(null, "login2@user", "pass", "Test User2", "UTC", List.of());
+
+            car1 = new Car(null, "VIN1", brand1, model1, engine1, color1, null);
+            car2 = new Car(null, "VIN2", brand2, model2, engine2, color2, null);
+            car3 = new Car(null, "VIN3", brand1, model3, engine1, color3, null);
+
+            session.persist(user1);
+            session.persist(user2);
             session.persist(brand1);
+            session.persist(brand2);
+
             session.persist(model1);
-            session.persist(fuel);
-            session.persist(engine);
-            session.persist(color);
+            session.persist(model2);
+            session.persist(model3);
+
+            session.persist(fuel1);
+            session.persist(fuel2);
+
+            session.persist(engine1);
+            session.persist(engine2);
+
+            session.persist(color1);
+            session.persist(color2);
+            session.persist(color3);
+
             tx.commit();
         }
     }
 
     @Test
     public void whenCreateThanReceiveSavedCar() {
-        Car savedCar = carRepository.create(car);
+        Car savedCar = carRepository.create(car1);
 
         assertThat(savedCar).isNotNull();
         assertThat(savedCar.getId()).isNotNull();
@@ -69,28 +104,30 @@ public class CarRepositoryTest {
         try (Session session = sessionFactory.openSession()) {
             Car dBCar = session.get(Car.class, savedCar.getId());
 
-            assertThat(dBCar.getVin()).isEqualTo("VIN0");
+            assertThat(dBCar.getVin()).isEqualTo("VIN1");
             assertThat(dBCar.getBrand().getName()).isEqualTo("Toyota");
+            assertThat(dBCar.getEngine().getVolume()).isEqualTo(2.5);
         }
     }
 
     @Test
     public void whenFindByIdThenReceivedCarWithThisId() {
-        Car savedCar = carRepository.create(car);
+        Car savedCar = carRepository.create(car1);
         Integer id = savedCar.getId();
 
         Optional<Car> rsl = carRepository.findById(id);
 
         assertThat(rsl).isPresent();
         assertThat(rsl.get().getId()).isEqualTo(id);
-        assertThat(rsl.get().getVin()).isEqualTo("VIN0");
+        assertThat(rsl.get().getVin()).isEqualTo("VIN1");
         assertThat(rsl.get().getBrand().getName()).isEqualTo("Toyota");
     }
 
     @Test
     public void whenUpdateThenReceiveUpdatedCar() {
-        Car savedCar = carRepository.create(car);
+        Car savedCar = carRepository.create(car1);
         Integer id = savedCar.getId();
+
         Car carToUpdate = carRepository.findById(id).get();
 
         Brand brand;
@@ -105,7 +142,7 @@ public class CarRepositoryTest {
             model = new Model(null, "Niva", brand);
             fuel = new Fuel(null, "Diesel");
             engine = new Engine(null, 2.0, fuel, 100);
-            color = new Color(null, "Green");
+            color = new Color(null, "Red");
 
             session.persist(brand);
             session.persist(model);
@@ -135,13 +172,13 @@ public class CarRepositoryTest {
             assertThat(dBCar.getBrand().getName()).isEqualTo("Lada");
             assertThat(dBCar.getModel().getName()).isEqualTo("Niva");
             assertThat(dBCar.getEngine().getFuel().getName()).isEqualTo("Diesel");
-            assertThat(dBCar.getColor().getName()).isEqualTo("Green");
+            assertThat(dBCar.getColor().getName()).isEqualTo("Red");
         }
     }
 
     @Test
     void whenDeleteThenReturnTrueAndCarIsGone() {
-        Car savedCar = carRepository.create(car);
+        Car savedCar = carRepository.create(car1);
         Integer id = savedCar.getId();
 
         try (Session session = sessionFactory.openSession()) {
@@ -160,6 +197,24 @@ public class CarRepositoryTest {
     public void whenDeleteNonExistentCarThenReturnFalse() {
         assertThat(carRepository.delete(666)).isFalse();
     }
+
+
+    @Test
+    public void whenFindByLikeModelNameThenReceiveCarList() {
+        String key = "aMr";
+        Car dbCar1 = carRepository.create(car1);
+        Car dbCar2 = carRepository.create(car2);
+        Car dbCar3 = carRepository.create(car3);
+
+        List<Car> rsl = carRepository.findByLikeModelName(key);
+
+        assertThat(rsl).hasSize(1);
+        assertThat(rsl).containsExactly(dbCar1);
+        assertThat(rsl.get(0).getModel().getName()).isEqualTo("Camry");
+        assertThat(rsl.get(0).getVin()).isEqualTo("VIN1");
+    }
+
+    /*
 
     @Test
     public void whenFindByLikeModelNameThenReceiveCarList() {
@@ -183,12 +238,36 @@ public class CarRepositoryTest {
         assertThat(rsl).containsExactly(dbCar);
         assertThat(rsl.get(0).getModel().getName()).isEqualTo("Camry");
         assertThat(rsl.get(0).getVin()).isEqualTo("VIN0");
-
     }
 
     @Test
-    void findByLikeBrandName() {
-    }
+    public void whenFindByLikeBrandNameThenReceiveCarList() {
+        // create car and persist it
+        Car savedCar = carRepository.create(car);
+        Integer id = savedCar.getId();
+
+        // create other car and persist
+        Car otherCar = new Car();
+        otherCar.setVin("VinOther");
+        Brand brand = new Brand(null, "BMW");
+
+        // extract the first one and prepare rsl List
+        // action
+        // assert size
+        // assert content
+        // assert
+
+
+        try (Session session = sessionFactory.openSession()) {
+            Car dbCar = session.get(Car.class, savedCar.getId());
+        }
+
+
+        List<Car> rsl = carRepository.findByLikeBrandName("Yota");
+        assertThat(rsl).hasSize(1).containsExactly(dbCar);
+
+
+    }*/
 
     @Test
     void findAll() {
