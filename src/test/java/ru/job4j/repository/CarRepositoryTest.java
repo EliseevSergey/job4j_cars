@@ -11,6 +11,7 @@ import ru.job4j.model.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,9 +64,8 @@ public class CarRepositoryTest {
             Color color2 = new Color(null, "Green");
             Color color3 = new Color(null, "Yellow");
 
-
-            user1 = new User(null, "login1@user", "pass", "Test User1", "UTC", List.of());
-            user2 = new User(null, "login2@user", "pass", "Test User2", "UTC", List.of());
+            user1 = new User(null, "login1@user", "pass1", "Test User1", "UTC", List.of());
+            user2 = new User(null, "login2@user", "pass2", "Test User2", "UTC", List.of());
 
             car1 = new Car(null, "VIN1", brand1, model1, engine1, color1, null);
             car2 = new Car(null, "VIN2", brand2, model2, engine2, color2, null);
@@ -201,80 +201,72 @@ public class CarRepositoryTest {
 
     @Test
     public void whenFindByLikeModelNameThenReceiveCarList() {
-        String key = "aMr";
         Car dbCar1 = carRepository.create(car1);
         Car dbCar2 = carRepository.create(car2);
         Car dbCar3 = carRepository.create(car3);
 
-        List<Car> rsl = carRepository.findByLikeModelName(key);
+        List<Car> rsl = carRepository.findByLikeModelName("aMr");
 
-        assertThat(rsl).hasSize(1);
-        assertThat(rsl).containsExactly(dbCar1);
+        assertThat(rsl).hasSize(1).containsExactly(dbCar1);
         assertThat(rsl.get(0).getModel().getName()).isEqualTo("Camry");
         assertThat(rsl.get(0).getVin()).isEqualTo("VIN1");
     }
 
-    /*
-
-    @Test
-    public void whenFindByLikeModelNameThenReceiveCarList() {
-        String key = "aMr";
-        Car dbCar = carRepository.create(car);
-
-        Model model = new Model(null, "RAV4", car.getBrand());
-
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            session.persist(model);
-            tx.commit();
-        }
-        Car other = new Car(null, "VIN2", car.getBrand(), model,
-                car.getEngine(), car.getColor(), null);
-
-
-        carRepository.create(other);
-        List<Car> rsl = carRepository.findByLikeModelName(key);
-        assertThat(rsl).hasSize(1);
-        assertThat(rsl).containsExactly(dbCar);
-        assertThat(rsl.get(0).getModel().getName()).isEqualTo("Camry");
-        assertThat(rsl.get(0).getVin()).isEqualTo("VIN0");
-    }
-
     @Test
     public void whenFindByLikeBrandNameThenReceiveCarList() {
-        // create car and persist it
-        Car savedCar = carRepository.create(car);
-        Integer id = savedCar.getId();
+        Car dbCar1 = carRepository.create(car1);
+        Car dbCar2 = carRepository.create(car2);
+        Car dbCar3 = carRepository.create(car3);
 
-        // create other car and persist
-        Car otherCar = new Car();
-        otherCar.setVin("VinOther");
-        Brand brand = new Brand(null, "BMW");
+        List<Car> rsl = carRepository.findByLikeBrandName("YoTa");
 
-        // extract the first one and prepare rsl List
-        // action
-        // assert size
-        // assert content
-        // assert
+        assertThat(rsl).hasSize(2)
+                .containsExactlyInAnyOrder(dbCar1, dbCar3);
 
-
-        try (Session session = sessionFactory.openSession()) {
-            Car dbCar = session.get(Car.class, savedCar.getId());
-        }
-
-
-        List<Car> rsl = carRepository.findByLikeBrandName("Yota");
-        assertThat(rsl).hasSize(1).containsExactly(dbCar);
-
-
-    }*/
-
-    @Test
-    void findAll() {
+        assertThat(rsl).extracting(car -> car.getBrand().getName())
+                .hasSize(2)
+                .containsOnly("Toyota");
     }
 
     @Test
-    void addOwner() {
+    public void whenFindAllThenReceiveAll() {
+        Car dbCar1 = carRepository.create(car1);
+        Car dbCar2 = carRepository.create(car2);
+        Car dbCar3 = carRepository.create(car3);
+
+        List<Car> rsl = carRepository.findAll();
+
+        assertThat(rsl).hasSize(3)
+                .containsExactlyInAnyOrder(dbCar1, dbCar2, dbCar3);
+    }
+
+    @Test
+    public void whenAddOwnerThenReceiveCarWithOwner() {
+        Car car = carRepository.create(car1);
+        Integer id = car.getId();
+
+        Owner owner;
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            owner = new Owner(null, "Owner1", user1);
+            session.persist(owner);
+            tx.commit();
+        }
+
+        try (Session session = sessionFactory.openSession()) {
+            Car dBCar = session.get(Car.class, id);
+            assertThat(dBCar.getOwners()).isEmpty();
+        }
+
+        assertTrue(carRepository.addOwner(id, owner.getId()));
+
+        try (Session session = sessionFactory.openSession()) {
+            Car dbCar = session.get(Car.class, id);
+            Set<Owner> owners = dbCar.getOwners();
+            assertThat(owners).hasSize(1)
+                    .extracting(Owner::getName)
+                    .containsOnly("Owner1");
+        }
     }
 
     @Test

@@ -1,10 +1,7 @@
 package ru.job4j.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -27,6 +24,7 @@ public class Brand {
 
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
     @JsonIgnore
+    @ToString.Exclude
     private List<Model> models = new ArrayList<>();
 
 

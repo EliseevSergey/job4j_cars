@@ -1,9 +1,6 @@
 package ru.job4j.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -46,5 +43,6 @@ public class Car {
             @JoinColumn(name = "car_id", nullable = false, updatable = false)},
             inverseJoinColumns = {
             @JoinColumn(name = "owner_id", nullable = false, updatable = false)})
+    @ToString.Exclude
     private Set<Owner> owners = new HashSet<>();
 }
