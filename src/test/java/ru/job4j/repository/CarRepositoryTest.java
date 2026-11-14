@@ -28,6 +28,7 @@ public class CarRepositoryTest {
 
     private User user1;
     private User user2;
+    private Owner owner;
 
     @BeforeEach
     public void setUp() {
@@ -35,13 +36,14 @@ public class CarRepositoryTest {
             Transaction tx = session.beginTransaction();
             session.createQuery("DELETE FROM Post").executeUpdate();
             session.createQuery("DELETE FROM Car").executeUpdate();
+            session.createQuery("DELETE FROM Owner").executeUpdate();
             session.createQuery("DELETE FROM User").executeUpdate();
             session.createQuery("DELETE FROM Engine").executeUpdate();
             session.createQuery("DELETE FROM Fuel").executeUpdate();
             session.createQuery("DELETE FROM Model").executeUpdate();
             session.createQuery("DELETE FROM Brand").executeUpdate();
             session.createQuery("DELETE FROM Color").executeUpdate();
-            session.createQuery("DELETE FROM Owner").executeUpdate();
+
             tx.commit();
         }
 
@@ -67,12 +69,19 @@ public class CarRepositoryTest {
             user1 = new User(null, "login1@user", "pass1", "Test User1", "UTC", List.of());
             user2 = new User(null, "login2@user", "pass2", "Test User2", "UTC", List.of());
 
+            owner = new Owner(null, "Owner1", user1);
+
+
             car1 = new Car(null, "VIN1", brand1, model1, engine1, color1, null);
             car2 = new Car(null, "VIN2", brand2, model2, engine2, color2, null);
             car3 = new Car(null, "VIN3", brand1, model3, engine1, color3, null);
 
+
             session.persist(user1);
             session.persist(user2);
+
+            session.persist(owner);
+
             session.persist(brand1);
             session.persist(brand2);
 
@@ -245,14 +254,6 @@ public class CarRepositoryTest {
         Car car = carRepository.create(car1);
         Integer id = car.getId();
 
-        Owner owner;
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            owner = new Owner(null, "Owner1", user1);
-            session.persist(owner);
-            tx.commit();
-        }
-
         try (Session session = sessionFactory.openSession()) {
             Car dBCar = session.get(Car.class, id);
             assertThat(dBCar.getOwners()).isEmpty();
@@ -270,6 +271,30 @@ public class CarRepositoryTest {
     }
 
     @Test
-    void removeOwner() {
+    public void whenRemoveOwnerThenReceiveEmptyOwner() {
+        Car car = carRepository.create(car1);
+        Integer id = car.getId();
+
+        try (Session session = sessionFactory.openSession()) {
+            Car dBCar = session.get(Car.class, id);
+            assertThat(dBCar.getOwners()).isEmpty();
+        }
+
+        assertTrue(carRepository.addOwner(id, owner.getId()));
+
+        try (Session session = sessionFactory.openSession()) {
+            Car dbCar = session.get(Car.class, id);
+            Set<Owner> owners = dbCar.getOwners();
+            assertThat(owners).hasSize(1)
+                    .extracting(Owner::getName)
+                    .containsOnly("Owner1");
+        }
+
+        assertTrue(carRepository.removeOwner(id, owner.getId()));
+
+        try (Session session = sessionFactory.openSession()) {
+            Car dBCar = session.get(Car.class, id);
+            assertThat(dBCar.getOwners()).isEmpty();
+        }
     }
 }
