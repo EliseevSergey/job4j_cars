@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -130,7 +131,17 @@ public class CarRepositoryTest {
         assertThat(rsl.get().getId()).isEqualTo(id);
         assertThat(rsl.get().getVin()).isEqualTo("VIN1");
         assertThat(rsl.get().getBrand().getName()).isEqualTo("Toyota");
+
+        assertThat(rsl).isPresent().get()
+                .extracting(Car::getVin,
+                        c -> c.getBrand().getName(),
+                        c -> c.getModel().getName(),
+                        c -> c.getColor().getName(),
+                        c -> c.getEngine().getVolume(),
+                        c -> c.getEngine().getFuel().getName())
+                .containsExactly("VIN1", "Toyota", "Camry", "Black", 2.5, "Petrol");
     }
+
 
     @Test
     public void whenUpdateThenReceiveUpdatedCar() {
@@ -247,6 +258,19 @@ public class CarRepositoryTest {
 
         assertThat(rsl).hasSize(3)
                 .containsExactlyInAnyOrder(dbCar1, dbCar2, dbCar3);
+
+        assertThat(rsl).hasSize(3)
+                .extracting(
+                        c -> c.getBrand().getName(),
+                        c -> c.getModel().getName(),
+                        c -> c.getEngine().getVolume(),
+                        c -> c.getEngine().getFuel().getName(),
+                        c -> c.getColor().getName())
+                .containsExactly(
+                        tuple("BMW", "X5", 1.6, "Diesel", "Green"),
+                        tuple("Toyota", "Camry", 2.5, "Petrol", "Black"),
+                        tuple("Toyota", "LandCruiser", 2.5, "Petrol", "Yellow")
+                );
     }
 
     @Test

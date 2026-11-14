@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 
 @SpringBootTest
@@ -90,6 +91,10 @@ public class ModelRepositoryTest {
     public void whenFindByBrandIdThenReceiveModelList() {
         List<Model> rsl1 = modelRepository.findByBrandId(brand1.getId());
         assertThat(rsl1).hasSize(2).containsExactlyInAnyOrder(model1, model2);
+
+        assertThat(rsl1).extracting(Model::getName, m -> m.getBrand().getName())
+                .containsExactly(tuple("Camry", "Toyota"),
+                                tuple("Land Cruiser", "Toyota"));
 
 
         List<Model> rsl2 = modelRepository.findByBrandId(brand2.getId());
