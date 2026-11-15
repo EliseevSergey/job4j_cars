@@ -25,6 +25,7 @@ public class Brand {
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
     @JsonIgnore
     @ToString.Exclude
+    @OrderBy("name ASC")
     private List<Model> models = new ArrayList<>();
 
 

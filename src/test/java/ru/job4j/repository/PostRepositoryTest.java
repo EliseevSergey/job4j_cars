@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
@@ -26,6 +27,7 @@ public class PostRepositoryTest {
     private Car car;
     private Post postWithPhoto;
     private Post postWithoutPhoto;
+    private Post outOfLastDayPost;
 
     @BeforeEach
     public void setUp() {
@@ -91,7 +93,7 @@ public class PostRepositoryTest {
 
             session.persist(postWithoutPhoto);
 
-            Post outOfLastDayPost = new Post();
+            outOfLastDayPost = new Post();
             outOfLastDayPost.setDescription("Старый пост");
             outOfLastDayPost.setPhoto(null);
             outOfLastDayPost.setSold(false);
@@ -125,45 +127,109 @@ public class PostRepositoryTest {
     @Test
     public void whenFindAllThenReceiveAll() {
         List<Post> saved = postRepository.findAll();
-        assertThat(saved).hasSize(3);
-    }
+        assertThat(saved).hasSize(3)
+                .containsExactlyInAnyOrder(postWithPhoto, postWithoutPhoto, outOfLastDayPost);
+
+        assertThat(saved).hasSize(3).extracting(
+                Post::getDescription,
+                p -> p.getCar().getBrand().getName(),
+                p -> p.getCar().getModel().getName(),
+                p -> p.getCar().getEngine().getVolume(),
+                p -> p.getCar().getEngine().getFuel().getName(),
+                p -> p.getCar().getColor().getName(),
+                p -> p.getUser().getLogin())
+                .containsExactly(
+                        tuple("Без фото", "BMW", "X5", 2.5, "Petrol", "Black", "login@user"),
+                        tuple("С фото", "Toyota", "Camry", 2.5, "Petrol", "Black", "login@user"),
+                        tuple("Старый пост", "BMW", "X5", 2.5, "Petrol", "Black", "login@user"));
+    };
 
     @Test
     public void whenFindByIdThenReceivedPost() {
         Optional<Post> rsl = postRepository.findById(postWithPhoto.getId());
         assertThat(rsl).isPresent();
-        assertThat(postWithPhoto.getId()).isEqualTo(rsl.get().getId());
-        assertThat(rsl.get().getDescription()).isEqualTo("С фото");
+
+        Integer id = rsl.get().getId();
+
+        assertThat(postWithPhoto).isEqualTo(rsl.get());
+
+        assertThat(rsl).isPresent().get().extracting(
+                Post::getId,
+                Post::getDescription,
+                p -> p.getUser().getLogin(),
+                p -> p.getCar().getBrand().getName(),
+                p -> p.getCar().getModel().getName(),
+                p -> p.getCar().getEngine().getFuel().getName(),
+                p -> p.getCar().getColor().getName())
+                .containsExactly(id, "С фото", "login@user", "Toyota", "Camry", "Petrol", "Black");
     }
 
     @Test
     public void whenFindLastDayWhenReceiveLastDay() {
         List<Post> rsl = postRepository.findLastDay();
-        assertThat(rsl).hasSize(2);
 
-        List<String> descriptions = rsl.stream().map(post -> post.getDescription()).toList();
-        assertThat(descriptions).doesNotContain("Старый пост");
-        assertThat(descriptions).containsExactlyInAnyOrder("Без фото", "С фото");
+        assertThat(rsl).hasSize(2).extracting(
+                        Post::getDescription,
+                        p -> p.getCar().getBrand().getName(),
+                        p -> p.getCar().getModel().getName(),
+                        p -> p.getCar().getEngine().getVolume(),
+                        p -> p.getCar().getEngine().getFuel().getName(),
+                        p -> p.getCar().getColor().getName(),
+                        p -> p.getUser().getLogin())
+                .containsExactly(
+                        tuple("Без фото", "BMW", "X5", 2.5, "Petrol", "Black", "login@user"),
+                        tuple("С фото", "Toyota", "Camry", 2.5, "Petrol", "Black", "login@user")                        ).
+                doesNotContain(tuple("Старый пост", "BMW", "X5", 2.5, "Petrol", "Black", "login@user"));
     }
 
     @Test
     public void whenFindWithPhotoThenReceiveOnlyWithPhoto() {
         List<Post> rsl = postRepository.findWithPhoto();
-        assertThat(rsl).hasSize(1);
-        assertThat(rsl.get(0).getDescription()).isEqualTo("С фото");
-        assertThat(rsl.get(0).getPhoto()).isEqualTo("/photo.jpg");
+
+        assertThat(rsl).hasSize(1).extracting(
+                        Post::getDescription,
+                        p -> p.getPhoto(),
+                        p -> p.getCar().getBrand().getName(),
+                        p -> p.getCar().getModel().getName(),
+                        p -> p.getCar().getEngine().getVolume(),
+                        p -> p.getCar().getEngine().getFuel().getName(),
+                        p -> p.getCar().getColor().getName(),
+                        p -> p.getUser().getLogin()
+                ).containsExactly(
+                        tuple("С фото", "/photo.jpg", "Toyota", "Camry", 2.5, "Petrol", "Black", "login@user"));
     }
 
     @Test
     public void whenFindByBrandThenReceiveWithThisBrand() {
         List<Post> rsl = postRepository.findByBrand("bmw");
-        assertThat(rsl).hasSize(2);
+
+        assertThat(rsl).containsExactly(postWithoutPhoto, outOfLastDayPost);
+
+        assertThat(rsl).hasSize(2).extracting(
+                        p -> p.getCar().getBrand().getName(),
+                        p -> p.getCar().getModel().getName(),
+                        p -> p.getCar().getEngine().getVolume(),
+                        p -> p.getCar().getEngine().getFuel().getName(),
+                        p -> p.getCar().getColor().getName(),
+                        p -> p.getUser().getLogin(),
+                        Post::getDescription)
+                .containsExactly(
+                        tuple("BMW", "X5", 2.5, "Petrol", "Black", "login@user", "Без фото"),
+                        tuple("BMW", "X5", 2.5, "Petrol", "Black", "login@user", "Старый пост"));
     }
 
     @Test
     public void whenFindByModelThenReceiveWithThisModel() {
         List<Post> rsl = postRepository.findByModel("camry");
-        assertThat(rsl).hasSize(1);
+
+        assertThat(rsl).hasSize(1).extracting(
+                        p -> p.getCar().getBrand().getName(),
+                        p -> p.getCar().getModel().getName(),
+                        p -> p.getCar().getEngine().getVolume(),
+                        p -> p.getCar().getEngine().getFuel().getName(),
+                        p -> p.getCar().getColor().getName(),
+                        p -> p.getUser().getLogin())
+                .containsExactly(tuple("Toyota", "Camry", 2.5, "Petrol", "Black", "login@user"));
     }
 
     @Test

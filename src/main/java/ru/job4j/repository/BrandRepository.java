@@ -17,7 +17,14 @@ public class BrandRepository {
        return crudRepository.query("FROM Brand b ORDER BY b.name", Brand.class);
     }
 
+    public List<Brand> findAllWithModels() {
+        return crudRepository.query("SELECT DISTINCT b FROM Brand b LEFT JOIN FETCH b.models ORDER BY b.name",
+                Brand.class);
+    }
+
     public Optional<Brand> findById(Integer brandId) {
-        return crudRepository.optional("FROM Brand b WHERE b.id = :fId", Brand.class, Map.of("fId", brandId));
+        return crudRepository
+                .optional("SELECT DISTINCT b FROM Brand b LEFT JOIN FETCH b.models WHERE b.id = :fId",
+                Brand.class, Map.of("fId", brandId));
     }
 }

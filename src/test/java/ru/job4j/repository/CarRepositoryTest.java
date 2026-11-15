@@ -129,8 +129,6 @@ public class CarRepositoryTest {
 
         assertThat(rsl).isPresent();
         assertThat(rsl.get().getId()).isEqualTo(id);
-        assertThat(rsl.get().getVin()).isEqualTo("VIN1");
-        assertThat(rsl.get().getBrand().getName()).isEqualTo("Toyota");
 
         assertThat(rsl).isPresent().get()
                 .extracting(Car::getVin,
@@ -228,8 +226,14 @@ public class CarRepositoryTest {
         List<Car> rsl = carRepository.findByLikeModelName("aMr");
 
         assertThat(rsl).hasSize(1).containsExactly(dbCar1);
-        assertThat(rsl.get(0).getModel().getName()).isEqualTo("Camry");
-        assertThat(rsl.get(0).getVin()).isEqualTo("VIN1");
+
+        assertThat(rsl).hasSize(1).extracting(
+                Car::getVin,
+                c -> c.getBrand().getName(),
+                c -> c.getModel().getName(),
+                c -> c.getEngine().getFuel().getName(),
+                c -> c.getColor().getName())
+                .containsExactly(tuple("VIN1", "Toyota", "Camry", "Petrol", "Black"));
     }
 
     @Test
@@ -243,9 +247,15 @@ public class CarRepositoryTest {
         assertThat(rsl).hasSize(2)
                 .containsExactlyInAnyOrder(dbCar1, dbCar3);
 
-        assertThat(rsl).extracting(car -> car.getBrand().getName())
-                .hasSize(2)
-                .containsOnly("Toyota");
+        assertThat(rsl).hasSize(2).extracting(
+                        Car::getVin,
+                        c -> c.getBrand().getName(),
+                        c -> c.getModel().getName(),
+                        c -> c.getEngine().getFuel().getName(),
+                        c -> c.getColor().getName())
+                .containsExactly(
+                        tuple("VIN1", "Toyota", "Camry", "Petrol", "Black"),
+                        tuple("VIN3", "Toyota", "LandCruiser", "Petrol", "Yellow"));
     }
 
     @Test
@@ -260,16 +270,16 @@ public class CarRepositoryTest {
                 .containsExactlyInAnyOrder(dbCar1, dbCar2, dbCar3);
 
         assertThat(rsl).hasSize(3)
-                .extracting(
+                .extracting(Car::getVin,
                         c -> c.getBrand().getName(),
                         c -> c.getModel().getName(),
                         c -> c.getEngine().getVolume(),
                         c -> c.getEngine().getFuel().getName(),
                         c -> c.getColor().getName())
                 .containsExactly(
-                        tuple("BMW", "X5", 1.6, "Diesel", "Green"),
-                        tuple("Toyota", "Camry", 2.5, "Petrol", "Black"),
-                        tuple("Toyota", "LandCruiser", 2.5, "Petrol", "Yellow")
+                        tuple("VIN2", "BMW", "X5", 1.6, "Diesel", "Green"),
+                        tuple("VIN1", "Toyota", "Camry", 2.5, "Petrol", "Black"),
+                        tuple("VIN3", "Toyota", "LandCruiser", 2.5, "Petrol", "Yellow")
                 );
     }
 
