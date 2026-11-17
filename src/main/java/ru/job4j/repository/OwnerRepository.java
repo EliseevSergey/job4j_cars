@@ -29,7 +29,8 @@ public class OwnerRepository {
     }
 
     public List<Owner> findByLikeName(String key) {
-        return crudRepository.query("FROM Owner o WHERE LOWER(o.name) LIKE LOWER(:fKey)", Owner.class,
+        return crudRepository.
+                query("FROM Owner o WHERE LOWER(o.name) LIKE LOWER(:fKey) ORDER BY o.name", Owner.class,
                 Map.of("fKey", "%" + key + "%")
         );
     }
