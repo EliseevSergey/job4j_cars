@@ -109,8 +109,8 @@ public class OwnerRepositoryTest {
         Optional<Owner> ownerDb = ownerRepository.findById(id);
 
         assertThat(ownerDb).isPresent().get()
-                .extracting(Owner::getId, o -> o.getUser().getLogin())
-                .containsExactly(id, "login@user1");
+                .extracting(Owner::getId, Owner::getName, o -> o.getUser().getLogin())
+                .containsExactly(id, "Owner1", "login@user1");
     }
 
     @Test

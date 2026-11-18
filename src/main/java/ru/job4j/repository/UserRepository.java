@@ -42,7 +42,7 @@ public class UserRepository {
 
     public List<User> findByLikeLogin(String key) {
         return crudRepository.query(
-                "FROM User u WHERE LOWER(u.login) LIKE LOWER(:fKey)", User.class,
+                "FROM User u WHERE LOWER(u.login) LIKE LOWER(:fKey) ORDER BY u.login", User.class,
                 Map.of("fKey", "%" + key + "%")
         );
     }
