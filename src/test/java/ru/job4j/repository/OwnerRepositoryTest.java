@@ -123,7 +123,7 @@ public class OwnerRepositoryTest {
         List<Owner> rsl = ownerRepository.findByLikeName("own");
 
         assertThat(rsl).hasSize(2)
-                .extracting(Owner::getName, o-> o.getUser().getName())
+                .extracting(Owner::getName, o -> o.getUser().getName())
 
                 .containsExactly(tuple("Owner1", "User1"),
                 tuple("Owner2", "User2"));

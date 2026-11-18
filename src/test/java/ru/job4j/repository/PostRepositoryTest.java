@@ -178,8 +178,8 @@ public class PostRepositoryTest {
                         p -> p.getUser().getLogin())
                 .containsExactly(
                         tuple("Без фото", "BMW", "X5", 2.5, "Petrol", "Black", "login@user"),
-                        tuple("С фото", "Toyota", "Camry", 2.5, "Petrol", "Black", "login@user")                        ).
-                doesNotContain(tuple("Старый пост", "BMW", "X5", 2.5, "Petrol", "Black", "login@user"));
+                        tuple("С фото", "Toyota", "Camry", 2.5, "Petrol", "Black", "login@user"))
+                .doesNotContain(tuple("Старый пост", "BMW", "X5", 2.5, "Petrol", "Black", "login@user"));
     }
 
     @Test

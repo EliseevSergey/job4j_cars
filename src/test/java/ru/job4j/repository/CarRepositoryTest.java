@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.job4j.model.*;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -100,13 +101,20 @@ public class CarRepositoryTest {
             session.persist(color2);
             session.persist(color3);
 
+            session.persist(car1);
+            session.persist(car2);
+            session.persist(car3);
+
             tx.commit();
         }
     }
 
     @Test
     public void whenCreateThanReceiveSavedCar() {
-        Car savedCar = carRepository.create(car1);
+        Car newCar = new Car(null, "VIN_NEW", car1.getBrand(), car1.getModel(), car1.getEngine(),
+                car1.getColor(), new HashSet<>());
+
+        Car savedCar = carRepository.create(newCar);
 
         assertThat(savedCar).isNotNull();
         assertThat(savedCar.getId()).isNotNull();
@@ -114,7 +122,7 @@ public class CarRepositoryTest {
         try (Session session = sessionFactory.openSession()) {
             Car dBCar = session.get(Car.class, savedCar.getId());
 
-            assertThat(dBCar.getVin()).isEqualTo("VIN1");
+            assertThat(dBCar.getVin()).isEqualTo("VIN_NEW");
             assertThat(dBCar.getBrand().getName()).isEqualTo("Toyota");
             assertThat(dBCar.getEngine().getVolume()).isEqualTo(2.5);
         }
@@ -122,8 +130,7 @@ public class CarRepositoryTest {
 
     @Test
     public void whenFindByIdThenReceivedCarWithThisId() {
-        Car savedCar = carRepository.create(car1);
-        Integer id = savedCar.getId();
+        Integer id = car1.getId();
 
         Optional<Car> rsl = carRepository.findById(id);
 
@@ -143,8 +150,7 @@ public class CarRepositoryTest {
 
     @Test
     public void whenUpdateThenReceiveUpdatedCar() {
-        Car savedCar = carRepository.create(car1);
-        Integer id = savedCar.getId();
+        Integer id = car1.getId();
 
         Car carToUpdate = carRepository.findById(id).get();
 
@@ -196,8 +202,7 @@ public class CarRepositoryTest {
 
     @Test
     void whenDeleteThenReturnTrueAndCarIsGone() {
-        Car savedCar = carRepository.create(car1);
-        Integer id = savedCar.getId();
+        Integer id = car1.getId();
 
         try (Session session = sessionFactory.openSession()) {
             Car dbCar = session.get(Car.class, id);
@@ -219,13 +224,9 @@ public class CarRepositoryTest {
 
     @Test
     public void whenFindByLikeModelNameThenReceiveCarList() {
-        Car dbCar1 = carRepository.create(car1);
-        Car dbCar2 = carRepository.create(car2);
-        Car dbCar3 = carRepository.create(car3);
-
         List<Car> rsl = carRepository.findByLikeModelName("aMr");
 
-        assertThat(rsl).hasSize(1).containsExactly(dbCar1);
+        assertThat(rsl).hasSize(1).containsExactly(car1);
 
         assertThat(rsl).hasSize(1).extracting(
                 Car::getVin,
@@ -238,14 +239,10 @@ public class CarRepositoryTest {
 
     @Test
     public void whenFindByLikeBrandNameThenReceiveCarList() {
-        Car dbCar1 = carRepository.create(car1);
-        Car dbCar2 = carRepository.create(car2);
-        Car dbCar3 = carRepository.create(car3);
-
         List<Car> rsl = carRepository.findByLikeBrandName("YoTa");
 
         assertThat(rsl).hasSize(2)
-                .containsExactlyInAnyOrder(dbCar1, dbCar3);
+                .containsExactlyInAnyOrder(car1, car3);
 
         assertThat(rsl).hasSize(2).extracting(
                         Car::getVin,
@@ -260,14 +257,10 @@ public class CarRepositoryTest {
 
     @Test
     public void whenFindAllThenReceiveAll() {
-        Car dbCar1 = carRepository.create(car1);
-        Car dbCar2 = carRepository.create(car2);
-        Car dbCar3 = carRepository.create(car3);
-
         List<Car> rsl = carRepository.findAll();
 
         assertThat(rsl).hasSize(3)
-                .containsExactlyInAnyOrder(dbCar1, dbCar2, dbCar3);
+                .containsExactlyInAnyOrder(car1, car2, car3);
 
         assertThat(rsl).hasSize(3)
                 .extracting(Car::getVin,
@@ -285,8 +278,7 @@ public class CarRepositoryTest {
 
     @Test
     public void whenAddOwnerThenReceiveCarWithOwner() {
-        Car car = carRepository.create(car1);
-        Integer id = car.getId();
+        Integer id = car1.getId();
 
         try (Session session = sessionFactory.openSession()) {
             Car dBCar = session.get(Car.class, id);
@@ -306,8 +298,7 @@ public class CarRepositoryTest {
 
     @Test
     public void whenRemoveOwnerThenReceiveEmptyOwner() {
-        Car car = carRepository.create(car1);
-        Integer id = car.getId();
+        Integer id = car1.getId();
 
         try (Session session = sessionFactory.openSession()) {
             Car dBCar = session.get(Car.class, id);

@@ -70,7 +70,7 @@ public class FuelRepositoryTest {
     }
 
     @Test
-    public void whenFindByIdWithNonExistentIdThenReturnEmpty () {
+    public void whenFindByIdWithNonExistentIdThenReturnEmpty() {
         assertThat(fuelRepository.findById(666)).isEmpty();
     }
 }
