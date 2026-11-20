@@ -85,8 +85,8 @@ public class PostFacadeTest {
         assertThat(postFacade.update(post, car, engine)).isEqualTo(post);
 
         InOrder inOrder = inOrder(engineService, carService, postService);
-        inOrder.verify(postService).update(post);
-        inOrder.verify(carService).update(car);
         inOrder.verify(engineService).update(engine);
+        inOrder.verify(carService).update(car);
+        inOrder.verify(postService).update(post);
     }
 }

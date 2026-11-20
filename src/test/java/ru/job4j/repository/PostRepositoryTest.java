@@ -33,14 +33,19 @@ public class PostRepositoryTest {
     public void setUp() {
         try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
+            session.createQuery("DELETE FROM PriceHistory").executeUpdate();
+            session.createNativeQuery("DELETE FROM participates").executeUpdate();
+            session.createNativeQuery("DELETE FROM history_owner").executeUpdate();
             session.createQuery("DELETE FROM Post").executeUpdate();
             session.createQuery("DELETE FROM Car").executeUpdate();
+            session.createQuery("DELETE FROM Owner").executeUpdate();
             session.createQuery("DELETE FROM User").executeUpdate();
             session.createQuery("DELETE FROM Engine").executeUpdate();
-            session.createQuery("DELETE FROM Fuel").executeUpdate();
             session.createQuery("DELETE FROM Model").executeUpdate();
+            session.createQuery("DELETE FROM Fuel").executeUpdate();
             session.createQuery("DELETE FROM Brand").executeUpdate();
             session.createQuery("DELETE FROM Color").executeUpdate();
+
             tx.commit();
         }
 

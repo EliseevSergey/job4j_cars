@@ -36,13 +36,16 @@ public class CarRepositoryTest {
     public void setUp() {
         try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
+            session.createQuery("DELETE FROM PriceHistory").executeUpdate();
+            session.createNativeQuery("DELETE FROM participates").executeUpdate();
+            session.createNativeQuery("DELETE FROM history_owner").executeUpdate();
             session.createQuery("DELETE FROM Post").executeUpdate();
             session.createQuery("DELETE FROM Car").executeUpdate();
             session.createQuery("DELETE FROM Owner").executeUpdate();
-            session.createQuery("DELETE FROM User").executeUpdate();
             session.createQuery("DELETE FROM Engine").executeUpdate();
-            session.createQuery("DELETE FROM Fuel").executeUpdate();
             session.createQuery("DELETE FROM Model").executeUpdate();
+            session.createQuery("DELETE FROM User").executeUpdate();
+            session.createQuery("DELETE FROM Fuel").executeUpdate();
             session.createQuery("DELETE FROM Brand").executeUpdate();
             session.createQuery("DELETE FROM Color").executeUpdate();
 
@@ -164,7 +167,7 @@ public class CarRepositoryTest {
             Transaction tx = session.beginTransaction();
             brand = new Brand(null, "Lada", List.of());
             model = new Model(null, "Niva", brand);
-            fuel = new Fuel(null, "Diesel");
+            fuel = new Fuel(null, "Propan");
             engine = new Engine(null, 2.0, fuel, 100);
             color = new Color(null, "Red");
 
@@ -195,7 +198,7 @@ public class CarRepositoryTest {
 
             assertThat(dBCar.getBrand().getName()).isEqualTo("Lada");
             assertThat(dBCar.getModel().getName()).isEqualTo("Niva");
-            assertThat(dBCar.getEngine().getFuel().getName()).isEqualTo("Diesel");
+            assertThat(dBCar.getEngine().getFuel().getName()).isEqualTo("Propan");
             assertThat(dBCar.getColor().getName()).isEqualTo("Red");
         }
     }
