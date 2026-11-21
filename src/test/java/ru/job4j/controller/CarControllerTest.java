@@ -1,6 +1,5 @@
 package ru.job4j.controller;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.ui.ConcurrentModel;
@@ -30,10 +29,6 @@ public class CarControllerTest {
         car2 = new Car();
         car2.setId(2);
         car2.setVin("VIN2");
-    }
-
-    @AfterEach
-    void tearDown() {
     }
 
     @Test

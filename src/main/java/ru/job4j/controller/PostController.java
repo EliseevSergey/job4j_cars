@@ -19,12 +19,10 @@ import java.util.Optional;
 public class PostController {
     private final PostFacade postFacade;
     private final PostService postService;
-    private final CarService carService;
     private final BrandService brandService;
     private final ColorService colorService;
     private final FuelService fuelService;
     private final ModelService modelService;
-    private final EngineService engineService;
     private final FileService fileService;
 
     @GetMapping
