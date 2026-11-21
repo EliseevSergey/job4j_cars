@@ -3,21 +3,33 @@ package ru.job4j.controller;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.job4j.model.Brand;
+import org.springframework.ui.ConcurrentModel;
 import ru.job4j.model.Car;
-import ru.job4j.model.Model;
 import ru.job4j.service.CarService;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-class CarControllerTest {
+public class CarControllerTest {
     private CarService carService;
+    private CarController carController;
+    private Car car1;
+    private Car car2;
 
     @BeforeEach
     void setUp() {
+        carService = mock(CarService.class);
+        carController = new CarController(carService);
+
+        car1 = new Car();
+        car1.setId(1);
+        car1.setVin("VIN1");
+        car2 = new Car();
+        car2.setId(2);
+        car2.setVin("VIN2");
     }
 
     @AfterEach
@@ -25,15 +37,14 @@ class CarControllerTest {
     }
 
     @Test
-    void whenAddListThanGetAll() {
-       /* List<Model> models = new ArrayList<>();
+    public void whenAddListThanGetAll() {
+        List<Car> expected = List.of(car1, car2);
+        when(carService.findAll()).thenReturn(expected);
+        ConcurrentModel model = new ConcurrentModel();
 
-        Brand brand = new Brand("brand", models);
-        Model model1 = new Model(01, "model", brand);
-        Model model2 = new Model(02, "model", brand);
-        Model model3 = new Model(03, "model", brand);
+        String view = carController.getAll(model);
 
-        Car car = new Car(33, "vin45678901234567", );
-        List<Car> list = List.of()*/
+        assertThat(view).isEqualTo("car/list");
+        assertThat(model.getAttribute("cars")).isEqualTo(expected);
     }
 }
